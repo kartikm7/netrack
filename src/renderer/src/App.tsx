@@ -1,33 +1,31 @@
-import Versions from './components/Versions'
-import electronLogo from './assets/electron.svg'
+import { useEffect, useState } from 'react'
+
+
+interface trackedData {
+  time: string,
+  len: number,
+  src: string,
+  dst: string
+}
 
 function App(): JSX.Element {
-  const ipcHandle = (): void => window.electron.ipcRenderer.send('ping')
+  const [state, setState] = useState<trackedData>()
+  useEffect(() => {
+    async function tracker(): Promise<void> {
+      // TODO: Add toast to verify the process has started
+      console.log(await window.api.netracker(5))
+      window.api.onTrackerData(data => {
+        console.log(data)
+        setState(JSON.parse(data))
+      })
+    }
+    tracker()
+  }, [])
 
+  // TODO: Figure out chart
   return (
     <>
-      <img alt="logo" className="logo" src={electronLogo} />
-      <div className="creator">Powered by electron-vite</div>
-      <div className="text">
-        Build an Electron app with <span className="react">React</span>
-        &nbsp;and <span className="ts">TypeScript</span>
-      </div>
-      <p className="tip">
-        Please try pressing <code>F12</code> to open the devTool
-      </p>
-      <div className="actions">
-        <div className="action">
-          <a href="https://electron-vite.org/" target="_blank" rel="noreferrer">
-            Documentation
-          </a>
-        </div>
-        <div className="action">
-          <a target="_blank" rel="noreferrer" onClick={ipcHandle}>
-            Send IPC
-          </a>
-        </div>
-      </div>
-      <Versions></Versions>
+      {JSON.stringify(state)}
     </>
   )
 }

@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, ipcMain } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { tracker } from './utils'
 
 function createWindow(): void {
   // Create the browser window.
@@ -51,7 +52,22 @@ app.whenReady().then(() => {
 
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
-
+  ipcMain.handle('tracker', (event, interfaceCard) => {
+    // to invoke the tracker
+    const command = tracker(interfaceCard)
+    command.stdout.on("data", data => {
+      const captured = data.toString().split("\n")
+      for (let idx = 0; idx < captured.length; idx++) {
+        const [time, len, src, dst] = captured[idx].split("\t")
+        // only if all the above exist
+        if (time && len && src && dst) {
+          const output = { time: time, len: len, src: src, dst: dst }
+          event.sender.send('tracker-data', JSON.stringify(output))
+        }
+      }
+    })
+    return "Initiated"
+  })
   createWindow()
 
   app.on('activate', function() {
