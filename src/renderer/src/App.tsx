@@ -24,9 +24,9 @@ function App(): JSX.Element {
 
   // TODO: Figure out chart
   return (
-    <>
+    <div className='h-screen w-full bg-black'>
       {JSON.stringify(state)}
-    </>
+    </div>
   )
 }
 
