@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
-import { TrendingUp } from "lucide-react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import { useEffect, useState } from "react";
+import { TrendingUp } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import {
   Card,
   CardContent,
@@ -8,19 +8,17 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
-  ChartConfig,
   ChartContainer,
-  ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
 
-interface trackedData {
-  time: string,
-  len: number,
-  src: string,
-  dst: string
+interface TrackedData {
+  time: string;
+  len: number;
+  src: string;
+  dst: string;
 }
 
 const chartConfig = {
@@ -28,86 +26,55 @@ const chartConfig = {
     label: "Traffic",
     color: "hsl(var(--chart-1))",
   },
-} satisfies ChartConfig
+};
 
 export default function Chart(): JSX.Element {
-  const [data, setData] = useState<trackedData[]>([])
+  const [data, setData] = useState<TrackedData[]>([]);
+
   useEffect(() => {
     async function tracker(): Promise<void> {
-      // TODO: Add toast to verify the process has started
-      console.log(await window.api.netracker(5))
-      window.api.onTrackerData(data => {
-        console.log(data)
-        setData(pre => {
-          pre.push(JSON.parse(data))
-          return pre
-        })
-      })
+      console.log(await window.api.netracker(5));
+      window.api.onTrackerData((data) => {
+        const parsedData = JSON.parse(data);
+        setData((prev) => [...prev, parsedData]); // Correctly update state
+      });
     }
-    tracker()
-  }, [])
+    tracker();
+  }, []);
 
-  // TODO: Figure out chart
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart - Gradient</CardTitle>
+        <CardTitle>Traffic Data</CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Traffic length over time
         </CardDescription>
       </CardHeader>
       <CardContent>
+        {/* Pass the required config to ChartContainer */}
         <ChartContainer config={chartConfig}>
           <AreaChart
-            accessibilityLayer
+            width={600}
+            height={300}
             data={data}
-            margin={{
-              left: 12,
-              right: 12,
-            }}
+            margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey="time"
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="time" tickFormatter={(value) => value.slice(0, 5)} />
+            <YAxis />
+            <Tooltip content={<ChartTooltipContent />} />
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-desktop)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-desktop)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-mobile)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-mobile)"
-                  stopOpacity={0.1}
-                />
+              <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
+                <stop offset="95%" stopColor="#8884d8" stopOpacity={0} />
               </linearGradient>
             </defs>
             <Area
-              dataKey="desktop"
-              type="natural"
-              fill="url(#fillDesktop)"
-              fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-              stackId="a"
+              type="monotone"
+              dataKey="len"
+              stroke="#8884d8"
+              fillOpacity={1}
+              fill="url(#gradient)"
             />
           </AreaChart>
         </ChartContainer>
@@ -125,10 +92,5 @@ export default function Chart(): JSX.Element {
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
-
-
-
-
-
