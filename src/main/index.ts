@@ -62,7 +62,8 @@ app.whenReady().then(() => {
         const [time, len, src, dst] = captured[idx].split("\t")
         // only if all the above exist
         if (time && len && src && dst) {
-          const output = { time: time, len: len, src: src, dst: dst }
+          const date = new Date(time * 1000)
+          const output = { time: date.toString(), len: len, src: src, dst: dst }
           event.sender.send('tracker-data', JSON.stringify(output))
         }
       }
