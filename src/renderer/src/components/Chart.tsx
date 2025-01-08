@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TrendingUp } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, XAxis, YAxis, Tooltip } from "recharts";
 import {
@@ -11,8 +11,9 @@ import {
 } from "@/components/ui/card";
 import {
   ChartContainer,
-  ChartTooltipContent,
 } from "@/components/ui/chart";
+import * as RechartsPrimitive from "recharts"
+import { cn } from "@renderer/lib/utils";
 
 interface TrackedData {
   time: string;
@@ -23,19 +24,22 @@ interface TrackedData {
 
 const chartConfig = {
   len: {
-    label: "Traffic",
+    label: "Traffic Data",
     color: "hsl(var(--chart-1))",
   },
 };
 
 export default function Chart(): JSX.Element {
   const [data, setData] = useState<TrackedData[]>([]);
+  const [max, setMax] = useState<TrackedData>()
 
   useEffect(() => {
     async function tracker(): Promise<void> {
       console.log(await window.api.netracker(5));
       window.api.onTrackerData((data) => {
         const parsedData = JSON.parse(data);
+        // populating the max value
+        if (max == undefined || parsedData.len > max.len) setMax(parsedData)
         setData((prev) => [...prev, parsedData]); // Correctly update state
       });
     }
@@ -43,26 +47,26 @@ export default function Chart(): JSX.Element {
   }, []);
 
   return (
-    <Card>
+    <Card className="">
       <CardHeader>
         <CardTitle>Traffic Data</CardTitle>
         <CardDescription>
           Traffic length over time
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         {/* Pass the required config to ChartContainer */}
         <ChartContainer config={chartConfig}>
           <AreaChart
-            width={600}
-            height={300}
-            data={data}
+            width={500}
+            height={50}
+            data={data.slice(-50)}
             margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
           >
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="time" tickFormatter={(value) => value.slice(0, 5)} />
             <YAxis />
-            <Tooltip content={<ChartTooltipContent />} />
+            <Tooltip content={<CustomChartToolTip />} />
             <defs>
               <linearGradient id="gradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#8884d8" stopOpacity={0.8} />
@@ -81,16 +85,45 @@ export default function Chart(): JSX.Element {
       </CardContent>
       <CardFooter>
         <div className="flex w-full items-start gap-2 text-sm">
-          <div className="grid gap-2">
+          {max && <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+              Current max traffic ({max.len}) <TrendingUp className="h-4 w-4" />
             </div>
-            <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              January - June 2024
+            <div className="flex flex-col items-start gap-2 leading-none text-muted-foreground">
+              <p>Source: {max.src}</p>
+              <p>Destination: {max.dst}</p>
+              <p>Length (in Bytes): {max.len}</p>
+              <p>DateTime: {max.time}</p>
             </div>
-          </div>
+          </div>}
         </div>
       </CardFooter>
     </Card>
   );
+}
+
+
+const CustomChartToolTip = ({ active, payload, labelClassName }: React.ComponentProps<typeof RechartsPrimitive.Tooltip>): React.ReactElement => {
+  const toolTip = useMemo(() => {
+    if (active && payload && payload.length) {
+      const [value] = payload
+      return <Card className="">
+        <CardHeader className="pb-1">
+          <CardTitle>Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p>Source: {value.payload.src}</p>
+          <p>Destination: {value.payload.dst}</p>
+          <p>Length (in Bytes): {value.payload.len}</p>
+          <p>DateTime: {value.payload.time}</p>
+        </CardContent>
+      </Card>
+    }
+    return <p>Hello</p>
+  }, [payload])
+  return <div className={cn("", labelClassName)}>
+    {active && payload && payload.length && <div>
+      {toolTip}
+    </div>}
+  </div >
 }
