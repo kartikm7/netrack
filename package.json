@@ -1,9 +1,9 @@
 {
   "name": "netrack",
-  "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
+  "version": "1.0.0-alpha",
+  "description": "A way to track your network",
   "main": "./out/main/index.js",
-  "author": "example.com",
+  "author": "Kings from KJSCE",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",
