@@ -5,6 +5,10 @@
   "main": "./out/main/index.js",
   "author": "Kings from KJSCE",
   "homepage": "https://electron-vite.org",
+  "repository": {
+    "type": "git",
+    "url": "https://www.github.com/kartikm7/netrack"
+  },
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
