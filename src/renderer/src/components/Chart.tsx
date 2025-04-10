@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/chart";
 import * as RechartsPrimitive from "recharts"
 import { cn } from "@renderer/lib/utils";
+import { InterfaceSelector } from "./InterfaceSelector";
+import { useAtomValue } from "jotai";
+import { interfaceCardAtom } from "@renderer/atom";
 
 interface TrackedData {
   time: string;
@@ -31,11 +34,13 @@ const chartConfig = {
 
 export default function Chart(): JSX.Element {
   const [data, setData] = useState<TrackedData[]>([]);
+  const [pause, setPause] = useState<boolean>(false)
   const [max, setMax] = useState<TrackedData>()
+  const interfaceCard = useAtomValue(interfaceCardAtom)
 
   useEffect(() => {
     async function tracker(): Promise<void> {
-      console.log(await window.api.netracker(5));
+      console.log(await window.api.netracker(interfaceCard));
       window.api.onTrackerData((data) => {
         const parsedData = JSON.parse(data);
         // populating the max value
@@ -44,15 +49,20 @@ export default function Chart(): JSX.Element {
       });
     }
     tracker();
-  }, []);
+  }, [interfaceCard]);
 
   return (
     <Card className="">
-      <CardHeader>
-        <CardTitle>Traffic Data</CardTitle>
-        <CardDescription>
-          Traffic length over time
-        </CardDescription>
+      <CardHeader className="flex justify-between">
+        <div>
+          <CardTitle>Traffic Data</CardTitle>
+          <CardDescription>
+            Traffic length over time
+          </CardDescription>
+        </div>
+        <div>
+          <InterfaceSelector />
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {/* Pass the required config to ChartContainer */}

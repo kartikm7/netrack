@@ -4,6 +4,7 @@ import { electronAPI } from '@electron-toolkit/preload'
 // Custom APIs for renderer
 const api = {
   netracker: (interfaceCard: number): Promise<string> => ipcRenderer.invoke('tracker', interfaceCard),
+  getInterfaceCard: (): Promise<string[]> => ipcRenderer.invoke('getInterfaceCard'),
   // This is just a layer of abstraction, to ensure that I can do whatever with the string that I get from the tracker-data channel
   // the callback interface is highly flexible, it allows
   onTrackerData: (callback: (data: string) => void): Electron.IpcRenderer => ipcRenderer.on('tracker-data', (_, data) => callback(data))

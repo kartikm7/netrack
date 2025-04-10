@@ -3,6 +3,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
 import { tracker } from './utils'
+import { execSync } from 'child_process'
 
 function createWindow(): void {
   // Create the browser window.
@@ -51,6 +52,14 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(window)
   })
 
+  // this is the beauty of making an asynchronous function synchronous javascript
+  async function getInterfaceCard(): Promise<string[]> {
+    const rawString = execSync('tshark -D', { encoding: "utf8" })
+    let response = rawString.split('\n')
+    response = response.filter(val => val != '')
+    return response
+  }
+
   // IPC test
   ipcMain.on('ping', () => console.log('pong'))
   ipcMain.handle('tracker', (event, interfaceCard) => {
@@ -70,6 +79,10 @@ app.whenReady().then(() => {
     })
     return "Initiated"
   })
+  ipcMain.handle("getInterfaceCard", async () => {
+    return await getInterfaceCard()
+  })
+
   createWindow()
 
   app.on('activate', function () {

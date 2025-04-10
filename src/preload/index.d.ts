@@ -6,6 +6,7 @@ declare global {
     api: {
       // TODO: Fix the types here
       netracker: (interfaceCard: number) => Promise<string>,
+      getInterfaceCard: () => Promise<string[]>,
       onTrackerData: (callback: (data: string) => void) => Electron.IpcRenderer
     }
   }
